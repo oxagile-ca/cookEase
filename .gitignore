@@ -1,0 +1,53 @@
+# Create .gitignore in your project root
+touch .gitignore
+
+# Add common patterns to ignore
+cat << EOF > .gitignore
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# User directories
+.android/
+.appium/
+.bash_history
+.bito/
+.cache/
+.cursor/
+.docker/
+.expo/
+.gitconfig
+.katalon/
+.lesshst
+.m2/
+.node_repl_history
+.npmrc
+.redhat/
+.ssh/
+.swt/
+.viminfo
+.vscode/
+.yarnrc
+
+# Windows user directories
+3D Objects/
+AppData/
+Application Data/
+Contacts/
+Cookies/
+Documents/
+Downloads/
+Favorites/
+Links/
+Music/
+Pictures/
+Recent/
+Videos/
+NTUSER*
+ntuser*
+
+# Project specific
+node_modules/
+.env
+EOF
