@@ -8,13 +8,15 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/lib/supabase';
 import { spacing, typography, borderRadius } from '../../src/theme/utils';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
+  const { signIn } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -32,7 +34,8 @@ export default function LoginScreen() {
 
       if (error) throw error;
 
-      // On successful login, router will automatically redirect to /(app)
+      // Call signIn from AuthProvider after successful Supabase auth
+      await signIn(email, password);
     } catch (error) {
       setError(error.message);
     } finally {

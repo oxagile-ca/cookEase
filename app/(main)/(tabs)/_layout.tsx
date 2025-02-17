@@ -1,39 +1,21 @@
 import { Tabs } from 'expo-router';
-import useColorScheme from '@/src/hooks/useColorScheme';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { AntDesign } from '@expo/vector-icons';
-import { colors } from '@/theme';
+import { colors } from '@/theme/colors';
 
-export default function TabLayout() {
-  const { isDark } = useColorScheme();
+export default function TabsLayout() {
+  const colorScheme = useColorScheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarInactiveTintColor: colors.gray,
-        tabBarInactiveBackgroundColor: isDark ? colors.blackGray : colors.white,
+        tabBarInactiveBackgroundColor: colorScheme.isDark ? colors.blackGray : colors.white,
         tabBarActiveTintColor: colors.lightPurple,
-        tabBarActiveBackgroundColor: isDark ? colors.blackGray : colors.white,
+        tabBarActiveBackgroundColor: colorScheme.isDark ? colors.blackGray : colors.white,
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <AntDesign name="home" size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <AntDesign name="profile" size={24} color={color} />,
-        }}
-      />
+      {/* Tab screens will be automatically added based on the file structure */}
     </Tabs>
   );
 }

@@ -1,6 +1,8 @@
 import { useColorScheme as useNativeColorScheme } from 'react-native';
 
-export default function useColorScheme() {
+export function useColorScheme() {
   const colorScheme = useNativeColorScheme();
   return colorScheme ?? 'light';
 }
+
+export default useColorScheme;

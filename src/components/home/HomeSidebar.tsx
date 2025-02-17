@@ -14,17 +14,14 @@ import { spacing } from '../../theme/spacing';
 import { borderRadius } from '../../theme/utils';
 import { useRouter } from 'expo-router';
 import { responsive } from '../../theme/responsive';
+import { useAuth } from '../../providers/AuthProvider';
 
 export function HomeSidebar({ style, onClose }: HomeSidebarProps) {
   const router = useRouter();
+  const { signOut } = useAuth();
 
   const navigateToAccount = () => {
     router.push('/account');
-  };
-
-  const handleLogout = () => {
-    // Add your logout logic here
-    router.replace('/login');
   };
 
   return (
@@ -118,7 +115,7 @@ export function HomeSidebar({ style, onClose }: HomeSidebarProps) {
           <Text style={styles.footerButtonText}>Account Settings</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.footerButton} onPress={handleLogout}>
+        <TouchableOpacity style={styles.footerButton} onPress={signOut}>
           <MaterialIcons name="logout" size={24} color="#000" />
           <Text style={styles.footerButtonText}>Logout</Text>
         </TouchableOpacity>

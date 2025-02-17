@@ -16,16 +16,8 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import { borderRadius } from '../../theme/utils';
-import { responsive } from '../../theme/responsive';
-
-interface Chef {
-  id: string;
-  name: string;
-  image: string;
-  cuisine: string;
-  rating: number;
-  // Add other chef properties as needed
-}
+import { responsive } from '@/theme/responsive';
+import { Chef } from '@/api/chefs';
 
 interface ChefCardProps {
   chef: Chef;
@@ -67,7 +59,7 @@ export function ChefCard({ chef, onPress, style }: ChefCardProps) {
           end={{ x: 1, y: 1 }}
           style={styles.gradient}>
           <View style={styles.header}>
-            <Image source={{ uri: chef.image }} style={styles.chefImage} resizeMode="cover" />
+            <Image source={{ uri: chef.image_url }} style={styles.chefImage} resizeMode="cover" />
             <View style={styles.headerInfo}>
               <Text style={styles.name}>{chef.name}</Text>
               <Text style={styles.cuisine}>{chef.cuisine}</Text>

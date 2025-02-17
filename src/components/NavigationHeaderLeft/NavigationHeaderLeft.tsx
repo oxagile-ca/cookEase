@@ -1,6 +1,6 @@
 import { SimpleLineIcons } from '@expo/vector-icons';
-import useColorScheme from '@/src/hooks/useColorScheme';
-import { colors } from '@/theme';
+import useColorScheme from '@hooks/useColorScheme';
+import { colors } from '@colors';
 
 export default function NavigationHeaderLeft({ onPress }: { onPress: () => void }) {
   const { isDark } = useColorScheme();

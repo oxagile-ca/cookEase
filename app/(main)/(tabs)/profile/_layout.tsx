@@ -1,10 +1,10 @@
 import { Stack } from 'expo-router';
 import { DrawerActions } from '@react-navigation/native';
-import NavigationHeaderLeft from '@/components/layouts/NavigationHeaderLeft';
-import NavigationHeaderTitle from '@/components/layouts/NavigationHeaderTitle';
-import useColorScheme from '@/src/hooks/useColorScheme';
+import { NavigationHeaderLeft } from '@components/NavigationHeaderLeft/NavigationHeaderLeft';
+import { NavigationHeaderTitle } from '@components/NavigationHeaderTitle/NavigationHeaderTitle';
+import useColorScheme from '@hooks/useColorScheme';
 import { useNavigation } from 'expo-router';
-import { colors } from '@/theme';
+import { colors } from '@colors';
 
 export default function ProfileStackLayout() {
   const navigation = useNavigation();

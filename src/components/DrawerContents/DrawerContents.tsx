@@ -1,6 +1,6 @@
 import { StyleSheet, SafeAreaView, View, Text } from 'react-native';
-import useColorScheme from '@/src/hooks/useColorScheme';
-import { colors } from '@/theme';
+import useColorScheme from '@hooks/useColorScheme';
+import { colors } from '@/theme/colors';
 
 const styles = StyleSheet.create({
   root: {

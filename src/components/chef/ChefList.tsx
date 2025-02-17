@@ -1,42 +1,37 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import { ChefCard } from './ChefCard';
-import { responsive } from '../../theme/responsive';
+import { useChefs } from '@/hooks/useChefs';
+import { router } from 'expo-router';
+import { responsive } from '@/theme/responsive';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
 
-interface Chef {
-  id: string;
-  name: string;
-  image: string;
-  cuisine: string;
-  rating: number;
-  // Add other chef properties as needed
-}
+export function ChefList() {
+  const { chefs, loading, error } = useChefs();
 
-interface ChefListProps {
-  chefs: Chef[];
-  onChefPress: (chef: Chef) => void;
-}
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-export function ChefList({ chefs, onChefPress }: ChefListProps) {
-  const { width } = useWindowDimensions();
+  if (error) {
+    return <ErrorMessage message={error} />;
+  }
 
-  // Calculate number of columns based on screen width
-  const getNumColumns = () => {
-    if (width < responsive.sm) return 1;
-    if (width < responsive.md) return 2;
-    return 3;
+  const handleChefPress = (chefId: string) => {
+    router.push(`/chef/${chefId}`);
   };
 
   return (
     <FlatList
       data={chefs}
+      keyExtractor={item => item.id}
       renderItem={({ item }) => (
-        <ChefCard chef={item} onPress={() => onChefPress(item)} style={styles.card} />
+        <ChefCard chef={item} onPress={() => handleChefPress(item.id)} style={styles.card} />
       )}
-      numColumns={getNumColumns()}
-      key={getNumColumns()} // Force re-render when columns change
+      numColumns={responsive.isSmallScreen ? 1 : 2}
       contentContainerStyle={styles.container}
-      columnWrapperStyle={getNumColumns() > 1 ? styles.row : undefined}
+      columnWrapperStyle={!responsive.isSmallScreen ? styles.row : undefined}
     />
   );
 }
