@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet } from 'react-native';
 import GradientButton from '@/components/elements/GradientButton';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import useColorScheme from '@/hooks/useColorScheme';
+import useColorScheme from '@/src/hooks/useColorScheme';
 import { colors } from '@/theme';
 
 const styles = StyleSheet.create({

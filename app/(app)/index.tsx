@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { chefService, Chef } from '../../src/services/chefService';
@@ -19,13 +20,21 @@ import { borderRadius } from '../../src/theme/utils';
 import { router, Stack } from 'expo-router';
 import { HomeSidebar } from '../../src/components/home/HomeSidebar';
 import { BrandHeader } from '../../src/components/header/BrandHeader';
+import { SearchBar } from '../../src/components/common/SearchBar';
+import useColorScheme from '../../src/hooks/useColorScheme';
+import { responsive } from '../../src/theme/responsive';
+import { ChefList } from '../../src/components/chef/ChefList';
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
   const [chefs, setChefs] = useState<Chef[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < responsive.sm;
 
   const loadChefs = async (query: string = '') => {
     try {
@@ -56,6 +65,14 @@ export default function HomeScreen() {
     loadChefs(query);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleChefPress = chef => {
+    router.push(`/chef/${chef.id}`);
+  };
+
   if (loading && !refreshing) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -71,115 +88,82 @@ export default function HomeScreen() {
           header: () => <BrandHeader />,
         }}
       />
-      <View style={styles.pageContainer}>
-        <View style={styles.mainContent}>
-          <View style={styles.searchContainer}>
-            <MaterialIcons name="search" size={24} color={colors.textSecondary} />
-            <TextInput
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={handleSearch}
-              placeholder="Search chefs or cuisines..."
-              placeholderTextColor={colors.textSecondary}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearch('')}>
-                <MaterialIcons name="close" size={24} color={colors.textSecondary} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={() => loadChefs()}>
-                <Text style={styles.retryText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <FlatList
-              data={chefs}
-              renderItem={({ item }) => (
-                <ChefCard
-                  chef={item}
-                  onPress={() => {
-                    router.push(`/chef/${item.id}`);
-                  }}
-                />
-              )}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.listContainer}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  colors={[colors.primary]}
-                />
-              }
-              ListEmptyComponent={() => (
-                <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>
-                    {searchQuery
-                      ? 'No chefs found matching your search'
-                      : 'No chefs available at the moment'}
-                  </Text>
-                </View>
-              )}
-            />
+      <View
+        style={[styles.container, { backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }]}>
+        <View style={styles.content}>
+          {isSmallScreen && (
+            <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
+              <MaterialIcons
+                name={isSidebarOpen ? 'close' : 'menu'}
+                size={24}
+                color={colorScheme === 'dark' ? '#fff' : '#000'}
+              />
+            </TouchableOpacity>
           )}
+
+          <SearchBar
+            value={searchQuery}
+            onChangeText={handleSearch}
+            placeholder="Search chefs or cuisines..."
+          />
+
+          <ChefList chefs={chefs} onChefPress={handleChefPress} />
         </View>
 
-        <HomeSidebar />
+        {/* Responsive Sidebar */}
+        {(!isSmallScreen || isSidebarOpen) && (
+          <HomeSidebar
+            style={[
+              styles.sidebar,
+              isSmallScreen && styles.mobileSidebar,
+              isSmallScreen && {
+                transform: [
+                  {
+                    translateX: isSidebarOpen ? 0 : responsive.getSidebarWidth(),
+                  },
+                ],
+              },
+            ]}
+            onClose={isSmallScreen ? toggleSidebar : undefined}
+          />
+        )}
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  pageContainer: {
+  container: {
     flex: 1,
     flexDirection: 'row',
+  },
+  content: {
+    flex: 1,
+    padding: responsive.spacing.md,
   },
   mainContent: {
     flex: 1,
-    backgroundColor: colors.background,
+    marginRight: responsive.isSmallScreen ? 0 : responsive.spacing.md,
   },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  sidebar: {
+    width: responsive.getSidebarWidth(),
+    backgroundColor: '#f5f5f5',
   },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
+  mobileSidebar: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.backgroundElevated,
-    margin: spacing.md,
-    padding: spacing.sm,
-    borderRadius: borderRadius.md,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  searchInput: {
-    flex: 1,
-    marginHorizontal: spacing.sm,
-    fontSize: 16,
-    color: colors.text,
-  },
-  listContainer: {
-    padding: spacing.md,
+  menuButton: {
+    padding: responsive.spacing.sm,
+    marginBottom: responsive.spacing.sm,
   },
   errorContainer: {
     flex: 1,
@@ -212,5 +196,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
     fontSize: 16,
+  },
+  listContainer: {
+    padding: spacing.md,
   },
 });

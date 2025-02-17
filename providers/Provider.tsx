@@ -1,7 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider as ReduxProvider } from 'react-redux';
-import useColorScheme from '@/hooks/useColorScheme';
+import useColorScheme from '@/src/hooks/useColorScheme';
 import store from '@/utils/store';
 import 'react-native-reanimated';
 

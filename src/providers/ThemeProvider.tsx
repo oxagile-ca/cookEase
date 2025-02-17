@@ -32,11 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     glassmorphism,
   };
 
-  return (
-    <ThemeContext.Provider value={theme}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {
@@ -45,4 +41,4 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-} 
+}

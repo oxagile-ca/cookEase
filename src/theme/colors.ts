@@ -40,4 +40,3 @@ export const colors = {
 // Type definitions for better TypeScript support
 export type ColorScheme = typeof colors;
 export type ColorName = keyof typeof colors;
-

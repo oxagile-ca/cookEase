@@ -95,11 +95,7 @@ export default function CustomButton({
       {loading ? (
         <ActivityIndicator color={colors.white} />
       ) : (
-        <Text style={[
-          styles.text,
-          variant === 'outline' && { color: colors.primary },
-          textStyle,
-        ]}>
+        <Text style={[styles.text, variant === 'outline' && { color: colors.primary }, textStyle]}>
           {label}
         </Text>
       )}

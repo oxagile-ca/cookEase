@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import useColorScheme from '@/hooks/useColorScheme';
+import useColorScheme from '@/src/hooks/useColorScheme';
 import { AntDesign } from '@expo/vector-icons';
 import { colors } from '@/theme';
 

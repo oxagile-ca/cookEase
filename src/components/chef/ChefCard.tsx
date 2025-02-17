@@ -8,6 +8,7 @@ import {
   Platform,
   Dimensions,
   Animated,
+  ViewStyle,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,27 +16,27 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 import { borderRadius } from '../../theme/utils';
+import { responsive } from '../../theme/responsive';
+
+interface Chef {
+  id: string;
+  name: string;
+  image: string;
+  cuisine: string;
+  rating: number;
+  // Add other chef properties as needed
+}
 
 interface ChefCardProps {
-  chef: {
-    id: string;
-    name: string;
-    image: string;
-    specialties: string[];
-    rating: number;
-    totalRatings: number;
-    location: string;
-    pricePerHour: number;
-    pickRate: number;
-    winRate: number;
-  };
+  chef: Chef;
   onPress: () => void;
+  style?: ViewStyle;
 }
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.9;
 
-export default function ChefCard({ chef, onPress }: ChefCardProps) {
+export function ChefCard({ chef, onPress, style }: ChefCardProps) {
   const scale = React.useRef(new Animated.Value(1)).current;
 
   const onPressIn = () => {
@@ -53,10 +54,10 @@ export default function ChefCard({ chef, onPress }: ChefCardProps) {
   };
 
   return (
-    <Animated.View style={[styles.cardWrapper, { transform: [{ scale }] }]}>
+    <Animated.View style={[styles.cardWrapper, { transform: [{ scale }] }, style]}>
       <TouchableOpacity
         style={styles.container}
-        onPress={onPress}sub
+        onPress={onPress}
         onPressIn={onPressIn}
         onPressOut={onPressOut}
         activeOpacity={1}>
@@ -69,33 +70,14 @@ export default function ChefCard({ chef, onPress }: ChefCardProps) {
             <Image source={{ uri: chef.image }} style={styles.chefImage} resizeMode="cover" />
             <View style={styles.headerInfo}>
               <Text style={styles.name}>{chef.name}</Text>
-              <View style={styles.specialtiesContainer}>
-                {chef.specialties.map((specialty, index) => (
-                  <View key={index} style={styles.specialtyTag}>
-                    <Text style={styles.specialtyText}>{specialty}</Text>
-                  </View>
-                ))}
-              </View>
+              <Text style={styles.cuisine}>{chef.cuisine}</Text>
             </View>
           </View>
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <MaterialIcons name="star" size={16} color="#F1C40F" />
+              <MaterialIcons name="star" size={16} color="#FFD700" />
               <Text style={styles.statValue}>{chef.rating.toFixed(1)}</Text>
-              <Text style={styles.statLabel}>({chef.totalRatings})</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.statItem}>
-              <MaterialIcons name="trending-up" size={16} color="#2ECC71" />
-              <Text style={styles.statValue}>{chef.pickRate}%</Text>
-              <Text style={styles.statLabel}>Pick Rate</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.statItem}>
-              <MaterialIcons name="emoji-events" size={16} color="#FF6B6B" />
-              <Text style={styles.statValue}>{chef.winRate}%</Text>
-              <Text style={styles.statLabel}>Success Rate</Text>
             </View>
           </View>
 
@@ -103,10 +85,6 @@ export default function ChefCard({ chef, onPress }: ChefCardProps) {
             <View style={styles.locationContainer}>
               <MaterialIcons name="location-on" size={16} color="#95A5A6" />
               <Text style={styles.location}>{chef.location}</Text>
-            </View>
-            <View style={styles.priceContainer}>
-              <Text style={styles.price}>${chef.pricePerHour}</Text>
-              <Text style={styles.priceLabel}>/hour</Text>
             </View>
           </View>
         </LinearGradient>
@@ -160,21 +138,9 @@ const styles = StyleSheet.create({
     color: '#34495E',
     marginBottom: spacing.xs,
   },
-  specialtiesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  specialtyTag: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
-    backgroundColor: '#FF6B6B',
-  },
-  specialtyText: {
-    ...typography.caption,
-    color: '#FFFFFF',
-    fontWeight: '600',
+  cuisine: {
+    ...typography.body2,
+    color: '#95A5A6',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -206,15 +172,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#34495E',
   },
-  statLabel: {
-    ...typography.caption,
-    color: '#95A5A6',
-  },
-  divider: {
-    width: 1,
-    height: '100%',
-    backgroundColor: '#E0E0E0',
-  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -227,20 +184,6 @@ const styles = StyleSheet.create({
   },
   location: {
     ...typography.body2,
-    color: '#95A5A6',
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.xs,
-  },
-  price: {
-    ...typography.h3,
-    color: '#2ECC71',
-    fontWeight: '700',
-  },
-  priceLabel: {
-    ...typography.caption,
     color: '#95A5A6',
   },
 });

@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet } from 'react-native';
-import useColorScheme from '@/hooks/useColorScheme';
+import useColorScheme from '@/src/hooks/useColorScheme';
 import Button from '@/components/elements/Button';
 import { useRouter } from 'expo-router';
 import { colors } from '@/theme';

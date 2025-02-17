@@ -42,13 +42,11 @@ export default function ProfileForm({ profile, onUpdate }: any) {
         const filePath = `${profile.id}/${fileName}`;
 
         // Upload image
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, {
-            uri: file.uri,
-            type: file.type || 'image/jpeg',
-            name: fileName,
-          });
+        const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, {
+          uri: file.uri,
+          type: file.type || 'image/jpeg',
+          name: fileName,
+        });
 
         if (uploadError) throw uploadError;
 
@@ -94,21 +92,13 @@ export default function ProfileForm({ profile, onUpdate }: any) {
 
   return (
     <View style={styles.container}>
-      <ProfileAvatar
-        url={profile?.avatar_url}
-        onPress={uploadAvatar}
-        loading={loading}
-      />
+      <ProfileAvatar url={profile?.avatar_url} onPress={uploadAvatar} loading={loading} />
 
       <Controller
         control={control}
         name="fullName"
         render={({ field: { onChange, value } }) => (
-          <InputField
-            label="Full Name"
-            value={value}
-            onChangeText={onChange}
-          />
+          <InputField label="Full Name" value={value} onChangeText={onChange} />
         )}
       />
 
@@ -129,20 +119,11 @@ export default function ProfileForm({ profile, onUpdate }: any) {
         control={control}
         name="bio"
         render={({ field: { onChange, value } }) => (
-          <InputField
-            label="Bio"
-            value={value}
-            onChangeText={onChange}
-            multiline
-          />
+          <InputField label="Bio" value={value} onChangeText={onChange} multiline />
         )}
       />
 
-      <CustomButton
-        label="Update Profile"
-        onPress={handleSubmit(onSubmit)}
-        loading={loading}
-      />
+      <CustomButton label="Update Profile" onPress={handleSubmit(onSubmit)} loading={loading} />
     </View>
   );
 }
@@ -151,4 +132,4 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
-}); 
+});

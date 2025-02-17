@@ -1,6 +1,6 @@
 import GradientButton from '@/components/elements/GradientButton';
 import { StyleSheet, View, Text } from 'react-native';
-import useColorScheme from '@/hooks/useColorScheme';
+import useColorScheme from '@/src/hooks/useColorScheme';
 import { windowWidth } from '@/utils/deviceInfo';
 import { colors, fonts } from '@/theme';
 import config from '@/utils/config';

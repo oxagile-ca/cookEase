@@ -1,5 +1,5 @@
 import { SimpleLineIcons } from '@expo/vector-icons';
-import useColorScheme from '@/hooks/useColorScheme';
+import useColorScheme from '@/src/hooks/useColorScheme';
 import { colors } from '@/theme';
 
 export default function NavigationHeaderLeft({ onPress }: { onPress: () => void }) {
