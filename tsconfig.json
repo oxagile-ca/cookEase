@@ -4,23 +4,43 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "~/*": ["./*"],
-      "@colors": ["src/theme/colors.ts"],
-      "@theme/*": ["src/theme/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@components/*": ["src/components/*"],
-      "@providers/*": ["src/providers/*"],
-      "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"],
-      "@/assets/*": ["assets/*"],
-      "@assets": ["assets/index"]
+      "@/*": [
+        "src/*"
+      ],
+      "~/*": [
+        "./*"
+      ],
+      "@colors": [
+        "src/theme/colors.ts"
+      ],
+      "@theme/*": [
+        "src/theme/*"
+      ],
+      "@hooks/*": [
+        "src/hooks/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@providers/*": [
+        "src/providers/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@/assets/*": [
+        "assets/*"
+      ],
+      "@assets": [
+        "assets/index"
+      ]
     }
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "**/*.tsx"
   ]
 }

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { responsive } from '../../theme/responsive';
+import { View, TextInput, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/hooks/useTheme';
+import { spacing } from '@/theme/utils';
 
 interface SearchBarProps {
   value: string;
@@ -9,32 +10,19 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-export function SearchBar({
-  value,
-  onChangeText,
-  placeholder = 'Search chefs or cuisines...',
-}: SearchBarProps) {
-  return (
-    <View style={styles.container}>
-      <MaterialIcons name="search" size={24} color="#666" style={styles.searchIcon} />
+export function SearchBar({ value, onChangeText, placeholder }: SearchBarProps) {
+  const { colors } = useTheme();
 
+  return (
+    <View style={[styles.container, { backgroundColor: colors.backgroundElevated }]}>
+      <Ionicons name="search" size={20} color={colors.textSecondary} />
       <TextInput
-        style={styles.input}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#666"
-        returnKeyType="search"
-        clearButtonMode="while-editing"
-        autoCapitalize="none"
-        autoCorrect={false}
+        placeholderTextColor={colors.textSecondary}
+        style={[styles.input, { color: colors.text }]}
       />
-
-      {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText('')} style={styles.clearButton}>
-          <MaterialIcons name="close" size={20} color="#666" />
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -43,33 +31,13 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    padding: spacing.sm,
     borderRadius: 8,
-    padding: responsive.spacing.sm,
-    marginBottom: responsive.spacing.md,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  searchIcon: {
-    marginRight: responsive.spacing.xs,
+    gap: spacing.sm,
   },
   input: {
     flex: 1,
-    fontSize: responsive.isSmallScreen ? 16 : 18,
-    color: '#000',
-    height: '100%',
-  },
-  clearButton: {
-    padding: responsive.spacing.xs,
-    marginLeft: responsive.spacing.xs,
+    fontSize: 16,
+    padding: 0,
   },
 });

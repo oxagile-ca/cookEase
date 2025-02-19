@@ -7,16 +7,22 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/lib/supabase';
 import { spacing, typography, borderRadius } from '../../src/theme/utils';
 import { useAuth } from '@/providers/AuthProvider';
+import LoginTabs from '@/components/auth/LoginTabs';
+
+type UserType = 'user' | 'chef';
 
 export default function LoginScreen() {
   const { colors } = useTheme();
   const { signIn } = useAuth();
+  const { type = 'user' } = useLocalSearchParams<{ type: UserType }>();
+  const [activeTab, setActiveTab] = React.useState<UserType>(type);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -27,17 +33,86 @@ export default function LoginScreen() {
       setLoading(true);
       setError(null);
 
-      const { error } = await supabase.auth.signInWithPassword({
+      // 1. Sign in with Supabase auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
-      // Call signIn from AuthProvider after successful Supabase auth
-      await signIn(email, password);
+      // 2. Get user profile from user_profiles table
+      const { data: userProfiles, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', authData.user.id);
+
+      if (profileError) throw profileError;
+
+      // Check if profile exists
+      if (!userProfiles || userProfiles.length === 0) {
+        // Create profile if it doesn't exist
+        const { error: createProfileError } = await supabase.from('user_profiles').insert({
+          id: authData.user.id,
+          email: email,
+          user_type: activeTab,
+          created_at: new Date().toISOString(),
+        });
+
+        if (createProfileError) throw createProfileError;
+      } else {
+        const userProfile = userProfiles[0];
+
+        // If user_type doesn't exist, update it
+        if (!userProfile.user_type) {
+          const { error: updateError } = await supabase
+            .from('user_profiles')
+            .update({ user_type: activeTab })
+            .eq('id', authData.user.id);
+
+          if (updateError) throw updateError;
+        } else if (userProfile.user_type !== activeTab) {
+          throw new Error(
+            `This account is registered as a ${userProfile.user_type || 'user'}. Please use the correct login tab.`,
+          );
+        }
+      }
+
+      // 3. If chef, ensure chef profile exists
+      if (activeTab === 'chef') {
+        const { data: chefData, error: chefError } = await supabase
+          .from('chefs')
+          .select('*')
+          .eq('id', authData.user.id);
+
+        if (chefError) throw chefError;
+
+        if (!chefData || chefData.length === 0) {
+          const { error: createChefError } = await supabase.from('chefs').insert({
+            id: authData.user.id,
+            name: userProfiles[0].first_name + ' ' + userProfiles[0].last_name,
+            image: '',
+            specialties: [],
+            rating: 0,
+            total_ratings: 0,
+            location: '',
+            price_per_hour: 0,
+            pick_rate: 0,
+            win_rate: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+          if (createChefError) throw createChefError;
+        }
+      }
+
+      // 4. Call signIn from AuthProvider
+      await signIn(email, password, activeTab);
     } catch (error) {
+      console.error('Login error:', error);
       setError(error.message);
+      Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
     }
@@ -50,6 +125,8 @@ export default function LoginScreen() {
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to continue</Text>
+
+        <LoginTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         {error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
 
@@ -91,7 +168,7 @@ export default function LoginScreen() {
           onPress={handleLogin}
           disabled={loading}>
           <Text style={[styles.buttonText, { color: colors.white }]}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Signing in...' : `Sign In as ${activeTab === 'user' ? 'User' : 'Chef'}`}
           </Text>
         </TouchableOpacity>
 
@@ -103,7 +180,9 @@ export default function LoginScreen() {
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>
             Don't have an account?{' '}
           </Text>
-          <Link href="/(auth)/register" style={[styles.link, { color: colors.primary }]}>
+          <Link
+            href={`/(auth)/register?type=${activeTab}`}
+            style={[styles.link, { color: colors.primary }]}>
             Register
           </Link>
         </View>

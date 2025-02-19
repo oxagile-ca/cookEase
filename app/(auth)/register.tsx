@@ -11,6 +11,7 @@ import CustomButton from '../../src/components/common/CustomButton';
 import LoginTabs from '../../src/components/auth/LoginTabs';
 import { authService } from '../../src/services/authService';
 import { useTheme } from '../../src/hooks/useTheme';
+import { supabase } from '@/lib/supabase';
 
 // Define spacing constants
 const SPACING = {
@@ -76,15 +77,46 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setLoading(true);
-      const { user, error } = await authService.signUp({
+
+      // 1. Sign up with Supabase auth
+      const { data: authData, error } = await authService.signUp({
         email: data.email,
         password: data.password,
         fullName: data.fullName,
         phone: data.phone,
-        userType: activeTab,
+        userType: activeTab, // 'user' or 'chef'
       });
 
       if (error) throw error;
+
+      const userId = authData.user?.id;
+      if (!userId) throw new Error('User ID not found');
+
+      // 2. Create profile entry
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: userId,
+        email: data.email,
+        full_name: data.fullName,
+        phone: data.phone,
+        user_type: activeTab,
+      });
+
+      if (profileError) throw profileError;
+
+      // 3. If registering as chef, create chef entry
+      if (activeTab === 'chef') {
+        const { error: chefError } = await supabase.from('chefs').insert({
+          id: userId,
+          rating: 0,
+          total_ratings: 0,
+          availability: true,
+          specialties: [],
+          location: '',
+          price: 0,
+        });
+
+        if (chefError) throw chefError;
+      }
 
       setIsRegistered(true);
       setUserEmail(data.email);

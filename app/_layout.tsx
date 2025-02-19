@@ -1,31 +1,23 @@
 import { Stack } from 'expo-router';
-import { ThemeProvider } from '../src/providers/ThemeProvider';
-import { AuthProvider } from '../src/providers/AuthProvider';
-import { useAuth } from '@/providers/AuthProvider';
-
-function RootLayoutNav() {
-  const { isAuthenticated } = useAuth();
-
-  return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}>
-      {!isAuthenticated ? (
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-      ) : (
-        <Stack.Screen name="(main)" options={{ headerShown: false }} />
-      )}
-    </Stack>
-  );
-}
+import { useTheme } from '@/hooks/useTheme';
+import { AuthProvider } from '@/providers/AuthProvider';
 
 export default function RootLayout() {
+  const { colors } = useTheme();
+
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <RootLayoutNav />
-      </ThemeProvider>
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: colors.backgroundElevated,
+          },
+          headerTintColor: colors.text,
+          contentStyle: {
+            backgroundColor: colors.background,
+          },
+        }}
+      />
     </AuthProvider>
   );
 }

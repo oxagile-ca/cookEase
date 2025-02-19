@@ -1,14 +1,15 @@
-// import React from 'react';
-// import { StyleSheet } from 'react-native';
-// import { Image } from 'expo-image';
+import React from 'react';
+import { Text, StyleSheet } from 'react-native';
+import { colors } from '@/theme/colors';
 
-// const styles = StyleSheet.create({
-//   logo: {
-//     width: 32,
-//     height: 32,
-//   },
-// });
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.white,
+  },
+});
 
-// export default function NavigationHeaderTitle() {
-//   return <Image source={images.logo} style={styles.logo} />;
-// }
+export default function NavigationHeaderTitle() {
+  return <Text style={styles.title}>COOKEASE</Text>;
+}
