@@ -15,7 +15,7 @@ import { chefService, Chef } from '../../../src/services/chefService';
 import { colors } from '../../../src/theme/colors';
 import { spacing } from '../../../src/theme/spacing';
 import { borderRadius } from '../../../src/theme/utils';
-import { ChefSidebar } from '../../../src/components/chef/ChefSidebar';
+import { ChefSidebar } from '../../../src/components/clients/chefs/ChefSidebar';
 
 export default function ChefDetailsScreen() {
   const { id } = useLocalSearchParams();

@@ -23,7 +23,7 @@ import { BrandHeader } from '../../src/components/header/BrandHeader';
 import { SearchBar } from '../../src/components/common/SearchBar';
 import useColorScheme from '../../src/hooks/useColorScheme';
 import { responsive } from '../../src/theme/responsive';
-import { ChefList } from '../../src/components/chef/ChefList';
+import { ChefList } from '../../src/components/clients/chefs/ChefList';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();

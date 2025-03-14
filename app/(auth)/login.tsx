@@ -1,193 +1,148 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  SafeAreaView,
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
+  ScrollView,
+  ImageBackground,
 } from 'react-native';
-import { Link, useLocalSearchParams } from 'expo-router';
-import { useTheme } from '../../src/hooks/useTheme';
-import { supabase } from '../../src/lib/supabase';
-import { spacing, typography, borderRadius } from '../../src/theme/utils';
+import { Link, useRouter } from 'expo-router';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import InputField from '../../src/components/common/InputField';
+import CustomButton from '../../src/components/common/CustomButton';
 import { useAuth } from '@/providers/AuthProvider';
-import LoginTabs from '@/components/auth/LoginTabs';
+import LoginTabs from '../../src/components/auth/LoginTabs';
 
-type UserType = 'user' | 'chef';
+const loginSchema = yup.object({
+  email: yup.string().email('Invalid email').required('Email is required'),
+  password: yup.string().required('Password is required'),
+});
+
+type LoginFormData = yup.InferType<typeof loginSchema>;
 
 export default function LoginScreen() {
-  const { colors } = useTheme();
   const { signIn } = useAuth();
-  const { type = 'user' } = useLocalSearchParams<{ type: UserType }>();
-  const [activeTab, setActiveTab] = React.useState<UserType>(type);
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<'user' | 'chef'>('user');
 
-  const handleLogin = async () => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
-      setError(null);
-
-      // 1. Sign in with Supabase auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
-
-      // 2. Get user profile from user_profiles table
-      const { data: userProfiles, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', authData.user.id);
-
-      if (profileError) throw profileError;
-
-      // Check if profile exists
-      if (!userProfiles || userProfiles.length === 0) {
-        // Create profile if it doesn't exist
-        const { error: createProfileError } = await supabase.from('user_profiles').insert({
-          id: authData.user.id,
-          email: email,
-          user_type: activeTab,
-          created_at: new Date().toISOString(),
-        });
-
-        if (createProfileError) throw createProfileError;
-      } else {
-        const userProfile = userProfiles[0];
-
-        // If user_type doesn't exist, update it
-        if (!userProfile.user_type) {
-          const { error: updateError } = await supabase
-            .from('user_profiles')
-            .update({ user_type: activeTab })
-            .eq('id', authData.user.id);
-
-          if (updateError) throw updateError;
-        } else if (userProfile.user_type !== activeTab) {
-          throw new Error(
-            `This account is registered as a ${userProfile.user_type || 'user'}. Please use the correct login tab.`,
-          );
-        }
-      }
-
-      // 3. If chef, ensure chef profile exists
-      if (activeTab === 'chef') {
-        const { data: chefData, error: chefError } = await supabase
-          .from('chefs')
-          .select('*')
-          .eq('id', authData.user.id);
-
-        if (chefError) throw chefError;
-
-        if (!chefData || chefData.length === 0) {
-          const { error: createChefError } = await supabase.from('chefs').insert({
-            id: authData.user.id,
-            name: userProfiles[0].first_name + ' ' + userProfiles[0].last_name,
-            image: '',
-            specialties: [],
-            rating: 0,
-            total_ratings: 0,
-            location: '',
-            price_per_hour: 0,
-            pick_rate: 0,
-            win_rate: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-
-          if (createChefError) throw createChefError;
-        }
-      }
-
-      // 4. Call signIn from AuthProvider
-      await signIn(email, password, activeTab);
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message);
-      Alert.alert('Error', error.message);
+      await signIn(data.email, data.password);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to sign in');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in to continue</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Background Image */}
+      <ImageBackground
+        source={require('../../assets/background-login.jpg')} // Add a soft background graphic
+        style={styles.backgroundImage}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          {/* Header Section */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome Back 👋</Text>
+            <Text style={styles.subtitle}>Sign in to continue your CookEase journey</Text>
+          </View>
 
-        <LoginTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          {/* Login Tabs */}
+          <LoginTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
+          {/* Form Section */}
+          <View style={styles.form}>
+            {/* Email Field */}
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputField
+                  label="Email"
+                  placeholder="Enter your email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.email?.message}
+                  leftIcon={<MaterialIcons name="email" size={24} color="#666" />}
+                />
+              )}
+            />
 
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.backgroundSecondary,
-              borderColor: colors.border,
-              color: colors.text,
-            },
-          ]}
-          placeholder="Email"
-          placeholderTextColor={colors.textTertiary}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+            {/* Password Field */}
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <InputField
+                  label="Password"
+                  placeholder="Enter your password"
+                  secureTextEntry={!showPassword}
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.password?.message}
+                  leftIcon={<Ionicons name="lock-closed" size={24} color="#666" />}
+                  rightIcon={
+                    <Ionicons
+                      name={showPassword ? 'eye-off' : 'eye'}
+                      size={24}
+                      color="#666"
+                      onPress={() => setShowPassword(!showPassword)}
+                    />
+                  }
+                />
+              )}
+            />
 
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: colors.backgroundSecondary,
-              borderColor: colors.border,
-              color: colors.text,
-            },
-          ]}
-          placeholder="Password"
-          placeholderTextColor={colors.textTertiary}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+            {/* Forgot Password */}
+            <View style={styles.forgotPasswordContainer}>
+              <Link href="/forgot-password" style={styles.forgotPassword}>
+                Forgot Password?
+              </Link>
+            </View>
 
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: colors.primary }]}
-          onPress={handleLogin}
-          disabled={loading}>
-          <Text style={[styles.buttonText, { color: colors.white }]}>
-            {loading ? 'Signing in...' : `Sign In as ${activeTab === 'user' ? 'User' : 'Chef'}`}
-          </Text>
-        </TouchableOpacity>
+            {/* Sign In Button */}
+            <CustomButton
+              title={`Login as ${activeTab === 'user' ? 'User' : 'Chef'}`}
+              onPress={handleSubmit(onSubmit)}
+              loading={loading}
+            />
+          </View>
 
-        <Link href="/forgot-password" style={[styles.link, { color: colors.primary }]}>
-          Forgot Password?
-        </Link>
-
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-            Don't have an account?{' '}
-          </Text>
-          <Link
-            href={`/(auth)/register?type=${activeTab}`}
-            style={[styles.link, { color: colors.primary }]}>
-            Register
-          </Link>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+          {/* Footer Section */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Link href="/register" style={styles.footerLink}>
+              Sign Up
+            </Link>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+    </SafeAreaView>
   );
 }
 
@@ -195,54 +150,60 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
+  backgroundImage: {
     flex: 1,
-    padding: spacing.xl,
+    resizeMode: 'cover',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
     justifyContent: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   title: {
-    ...typography.h1,
-    marginBottom: spacing.xs,
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
   },
   subtitle: {
-    ...typography.body1,
-    marginBottom: spacing.xl,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
-  },
-  button: {
-    height: 48,
-    borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sm,
-  },
-  buttonText: {
-    ...typography.body1,
-    fontWeight: '600',
-  },
-  error: {
-    ...typography.body2,
-    marginBottom: spacing.md,
-  },
-  link: {
-    ...typography.body2,
-    fontWeight: '600',
-    marginTop: spacing.md,
+    fontSize: 16,
+    color: '#555',
     textAlign: 'center',
+    marginTop: 5,
+  },
+  form: {
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Light background for readability
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 20,
+  },
+  forgotPassword: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF7F50', // Warm coral color
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.xl,
+    marginVertical: 20,
   },
   footerText: {
-    ...typography.body2,
+    fontSize: 14,
+    color: '#666',
+  },
+  footerLink: {
+    fontWeight: '700',
+    color: '#FF7F50', // Warm coral color
   },
 });

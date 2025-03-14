@@ -25,12 +25,26 @@ const CUISINE_OPTIONS = [
   'Fusion',
 ];
 
-const EXPERIENCE_OPTIONS = ['1-3 years', '3-5 years', '5-10 years', '10+ years'];
+// Simplified experience options to use direct values
+const EXPERIENCE_OPTIONS = [
+  '2', // 1-3 years
+  '4', // 3-5 years
+  '7', // 5-10 years
+  '10', // 10+ years
+];
+
+// Map for displaying labels
+const EXPERIENCE_LABELS: Record<string, string> = {
+  '2': '1-3 years',
+  '4': '3-5 years',
+  '7': '5-10 years',
+  '10': '10+ years',
+};
 
 interface Step2Props {
   data: {
     specialties: string[];
-    experience_level: string;
+    experience_level: number;
     certifications: string[];
     dish_images: string[];
     bio: string;
@@ -45,7 +59,7 @@ export function Step2Specialization({ data, onUpdate, onNext, onBack }: Step2Pro
 
   const isFormValid =
     data.specialties.length > 0 &&
-    data.experience_level &&
+    data.experience_level > 0 &&
     data.bio.trim() !== '' &&
     data.dish_images.length > 0;
 
@@ -65,8 +79,12 @@ export function Step2Specialization({ data, onUpdate, onNext, onBack }: Step2Pro
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Experience Level</Text>
         <ChipSelect
           options={EXPERIENCE_OPTIONS}
-          selected={[data.experience_level]}
-          onChange={selected => onUpdate({ experience_level: selected[0] })}
+          selected={data.experience_level ? [data.experience_level.toString()] : []}
+          onChange={selected => {
+            const value = parseInt(selected[0], 10);
+            onUpdate({ experience_level: value });
+          }}
+          renderLabel={value => EXPERIENCE_LABELS[value]}
         />
       </View>
 

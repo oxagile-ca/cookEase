@@ -1,5 +1,14 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, ScrollView, Alert, Animated } from 'react-native';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Animated,
+  TouchableOpacity,
+} from 'react-native';
 import { Link, useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
@@ -9,9 +18,8 @@ import { colors } from '../../src/theme/colors';
 import InputField from '../../src/components/common/InputField';
 import CustomButton from '../../src/components/common/CustomButton';
 import LoginTabs from '../../src/components/auth/LoginTabs';
-import { authService } from '../../src/services/authService';
-import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '@/lib/supabase';
+import { useTheme } from '../../src/hooks/useTheme';
 
 // Define spacing constants
 const SPACING = {
@@ -22,7 +30,7 @@ const SPACING = {
   xl: 32,
 };
 
-type UserType = 'user' | 'chef';
+type UserType = 'client' | 'chef';
 
 const registerSchema = yup.object({
   fullName: yup.string().required('Full name is required'),
@@ -47,7 +55,7 @@ type RegisterFormData = yup.InferType<typeof registerSchema>;
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { type = 'user' } = useLocalSearchParams<{ type: UserType }>();
+  const { type = 'client' } = useLocalSearchParams<{ type: UserType }>();
   const [activeTab, setActiveTab] = React.useState<UserType>(type);
   const [loading, setLoading] = React.useState(false);
   const [isRegistered, setIsRegistered] = React.useState(false);
@@ -78,41 +86,43 @@ export default function RegisterScreen() {
     try {
       setLoading(true);
 
-      // 1. Sign up with Supabase auth
-      const { data: authData, error } = await authService.signUp({
+      // Make sure you're passing 'client' for user registration
+      const userRole = activeTab === 'user' ? 'client' : 'chef';
+
+      await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        fullName: data.fullName,
-        phone: data.phone,
-        userType: activeTab, // 'user' or 'chef'
+        options: {
+          data: {
+            full_name: data.fullName,
+            phone_number: data.phone,
+            user_role: userRole,
+          },
+        },
       });
-
-      if (error) throw error;
 
       const userId = authData.user?.id;
       if (!userId) throw new Error('User ID not found');
 
-      // 2. Create profile entry
-      const { error: profileError } = await supabase.from('profiles').insert({
+      // 2. Create user entry in the users table
+      const { error: userError } = await supabase.from('users').insert({
         id: userId,
-        email: data.email,
         full_name: data.fullName,
-        phone: data.phone,
-        user_type: activeTab,
+        email: data.email,
+        password: 'hashed_by_supabase', // Supabase handles password hashing
+        phone_number: data.phone,
+        user_role: userRole,
       });
 
-      if (profileError) throw profileError;
+      if (userError) throw userError;
 
       // 3. If registering as chef, create chef entry
       if (activeTab === 'chef') {
         const { error: chefError } = await supabase.from('chefs').insert({
           id: userId,
-          rating: 0,
-          total_ratings: 0,
-          availability: true,
           specialties: [],
-          location: '',
-          price: 0,
+          experience: 0,
+          hourly_rate: 0,
         });
 
         if (chefError) throw chefError;
@@ -121,7 +131,7 @@ export default function RegisterScreen() {
       setIsRegistered(true);
       setUserEmail(data.email);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert('Error', error.message || 'Failed to sign up');
     } finally {
       setLoading(false);
     }
@@ -131,7 +141,13 @@ export default function RegisterScreen() {
     if (resendCooldown > 0) return;
 
     try {
-      await authService.resendVerificationEmail(userEmail);
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: userEmail,
+      });
+
+      if (error) throw error;
+
       setResendCooldown(60);
       Alert.alert('Success', 'Verification email has been resent');
 
@@ -276,11 +292,7 @@ export default function RegisterScreen() {
           )}
         />
 
-        <CustomButton
-          label={`Sign Up as ${activeTab === 'user' ? 'User' : 'Chef'}`}
-          onPress={handleSubmit(onSubmit)}
-          loading={loading}
-        />
+        <CustomButton label="SIGN UP" onPress={handleSubmit(onSubmit)} loading={loading} />
 
         <View style={styles.navigationLinks}>
           <Text style={styles.navigationText}>
@@ -382,5 +394,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: SPACING.md,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  tab: {
+    padding: SPACING.sm,
+    borderWidth: 1,
+    borderColor: colors.gray,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderColor: colors.primary,
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: colors.primary,
   },
 });

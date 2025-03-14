@@ -3,14 +3,14 @@ import { useAuth } from '@/providers/AuthProvider';
 
 export default function MainLayout() {
   const { user } = useAuth();
-  const isChef = user?.user_type === 'chef';
+  const userRole = user?.user_role || 'client';
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
       }}>
-      {isChef ? <Stack.Screen name="(chef)" /> : <Stack.Screen name="(tabs)" />}
+      {userRole === 'chef' ? <Stack.Screen name="(chef)" /> : <Stack.Screen name="(user)" />}
     </Stack>
   );
 }
